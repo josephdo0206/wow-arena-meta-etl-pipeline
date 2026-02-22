@@ -124,59 +124,6 @@ df_final = pd.merge(df_ladder.head(5), df_classes, on='name')
 # Inspect the final product
 df_final
 
-import time # We need this to pause slightly so Blizzard doesn't block us
-
-class_data = []
-target_players = 1000 # Let's pull the Top 1000 players
-
-print(f"Commencing mass extraction of Top {target_players} players...")
-
-# Loop through the first 1000 rows
-for index, row in df_ladder.head(target_players).iterrows():
-
-    # We use .encode('utf-8') to help handle some (but not all) special characters
-    name = row['name'].lower()
-    realm = row['realm'].lower()
-
-    profile_url = f"https://us.api.blizzard.com/profile/wow/character/{realm}/{name}"
-    profile_params = {
-        "namespace": "profile-us",
-        "locale": "en_US"
-    }
-
-    response = requests.get(profile_url, headers=headers, params=profile_params)
-
-    if response.status_code == 200:
-        char_info = response.json()
-        player_class = char_info['character_class'].get('name')
-        player_spec = char_info['active_spec'].get('name')
-    else:
-        player_class = "Unknown"
-        player_spec = "Unknown"
-
-    class_data.append({
-        'name': row['name'],
-        'class': player_class,
-        'spec': player_spec
-    })
-
-    # Print progress every 100 players so you know it hasn't frozen
-    if (index + 1) % 100 == 0:
-        print(f"Successfully processed {index + 1} players...")
-
-    # Sleep for a tiny fraction of a second to respect Blizzard's API limits
-    time.sleep(0.05)
-
-print("Extraction complete. Merging data...")
-
-# Convert and Merge
-df_classes = pd.DataFrame(class_data)
-df_final = pd.merge(df_ladder.head(target_players), df_classes, on='name')
-
-# Save the final product to your Colab files as a CSV!
-df_final.to_csv('tww_s3_top1000_meta.csv', index=False)
-print("FILE SAVED: tww_s3_top1000_meta.csv")
-
 import time
 
 class_data = []
